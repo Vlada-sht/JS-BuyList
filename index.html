@@ -1,15 +1,47 @@
 <!DOCTYPE html>
-<html>
-<head lang="uk">
+<html lang="uk">
+<head>
     <meta charset="UTF-8">
-    <title>My Page</title>
-
-
-    <link rel="stylesheet" type="text/css" href="main.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyList - Кошик покупок</title>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
-<h1>Hello World</h1>
-<p>Hello Git</p>
-<div class="text2018">Hi 2018!!!</div>
+
+    <main class="container">
+        <section class="column add-item-section" aria-labelledby="add-title">
+            <h2 id="add-title">Додати товар</h2>
+            <div class="input-group">
+                <input type="text" placeholder="Назва товару..." aria-label="Введіть назву товару">
+                <button type="button" data-tooltip="Додати до списку" aria-label="Додати товар">Додати</button>
+            </div>
+        </section>
+
+        <section class="column list-section" aria-labelledby="list-title">
+            <h2 id="list-title">Список покупок</h2>
+            <ul class="buy-list">
+                <li class="list-item">
+                    <span class="item-name">Помідори (1 кг)</span>
+                    <div class="item-actions">
+                        <button type="button" class="btn-buy" data-tooltip="Відмітити як куплене" aria-label="Купити помідори">✔</button>
+                        <button type="button" class="btn-delete" data-tooltip="Видалити товар" aria-label="Видалити помідори">✖</button>
+                    </div>
+                </li>
+                <li class="list-item bought">
+                    <span class="item-name">Сир</span>
+                    <div class="item-actions">
+                        <button type="button" class="btn-buy" data-tooltip="Скасувати покупку" aria-label="Повернути сир до некуплених">↺</button>
+                        <button type="button" class="btn-delete" data-tooltip="Видалити товар" aria-label="Видалити сир">✖</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="student-badge">
+        <span class="badge-title">Штомпіль Владислава</span>
+        <span class="badge-author">Роботу виконала Штомпіль Владислава<br><strong>
+    </div>
+
 </body>
 </html>
