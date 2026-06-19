@@ -3,44 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-BuyList</title>
-    <link rel="stylesheet" href="style.css">
+    <title>П'ятнашки</title>
+    
+    <link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet" />
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f5f7;
+            margin-top: 50px;
+        }
+        h2 {
+            color: #333;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #0047AB; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003380;
+        }
+        #wdr-component {
+            width: 400px;
+            height: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        /* Кастомізація клітинок */
+        .wdr-cell {
+            font-size: 24px !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s;
+        }
+        .wdr-cell:hover {
+            background-color: #e0e0e0 !important;
+        }
+        .empty-tile {
+            background-color: #f4f5f7 !important;
+            color: transparent !important;
+            cursor: default !important;
+        }
+        .game-tile {
+            background-color: #ffffff !important;
+            color: #333 !important;
+            border: 2px solid #ccc !important;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
 </head>
 <body>
 
-    <main class="container">
-        <section class="column left-col">
-            <h2>Потрібно купити</h2>
-            
-            <div class="add-item-container">
-                <input type="text" placeholder="Назва товару" aria-label="Введіть назву товару для додавання">
-                <button class="btn-add" data-tooltip="Додати новий товар у список">Додати</button>
-            </div>
-
-            <ul class="buy-list" aria-label="Список товарів"></ul>
-        </section>
-
-        <section class="column right-col">
-            <h2>Статистика</h2>
-            <div class="stats-container">
-                <div class="stats-left">
-                    <h3>Залишилося</h3>
-                    <ul id="stats-to-buy"></ul>
-                </div>
-                <div class="stats-bought">
-                    <h3>Куплено</h3>
-                    <ul id="stats-already-bought"></ul>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <div class="badge" aria-label="Інформація про автора">
-        <div class="badge-top">Штомпіль Владислава</div>
-        <div class="badge-bottom">Роботу виконала Штомпіль Владислава</div>
+    <h2>Гра "П'ятнашки" </h2>
+    
+    <div class="controls">
+        <button onclick="restartGame()">Перемішати</button>
     </div>
 
-    <script src="script.js"></script>
+    <div id="wdr-component"></div>
 
+    <div id="status"></div>
+
+    <script>
+        const SIZE = 4;
+        let board = [];
+        let emptyR = SIZE - 1;
+        let emptyC = SIZE - 1;
+        let pivot;
+
+        // Ініціалізація виграшного стану
+        function initBoard() {
+            board = [];
+            let counter = 1;
+            for (let r = 0; r < SIZE; r++) {
+                let row = [];
+                for (let c = 0; c < SIZE; c++) {
+                    if (r === SIZE - 1 && c === SIZE - 1) {
+                        row.push(0); // 0 - порожня клітинка
+                    } else {
+                        row.push(counter++);
+                    }
+                }
+                board.push(row);
+            }
+            emptyR = SIZE - 1;
+            emptyC = SIZE - 1;
+        }
+
+        // Перемішування - завжди має розв'язок
+        function shuffleBoard() {
+            for (let i = 0; i < 200; i++) {
+                let moves = [];
+                if (emptyR > 0) moves.push({ r: emptyR - 1, c: emptyC });
+                if (emptyR < SIZE - 1) moves.push({ r: emptyR + 1, c: emptyC });
+                if (emptyC > 0) moves.push({ r: emptyR, c: emptyC - 1 });
+                if (emptyC < SIZE - 1) moves.push({ r: emptyR, c: emptyC + 1 });
+                
+                let randomMove = moves[Math.floor(Math.random() * moves.length)];
+                board[emptyR][emptyC] = board[randomMove.r][randomMove.c];
+                board[randomMove.r][randomMove.c] = 0;
+                emptyR = randomMove.r;
+                emptyC = randomMove.c;
+            }
+        }
+
+        // Конвертуємо масив
+        function getWDRData() {
+            let data = [];
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    data.push({
+                        "Рядок": r.toString(),
+                        "Стовпець": c.toString(),
+                        "Плитка": board[r][c]
+                    });
+                }
+            }
+            return data;
+        }
+
+        // Перевірка на перемогу
+        function checkWin() {
+            let counter = 1;
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    if (r === SIZE - 1 && c === SIZE - 1) break;
+                    if (board[r][c] !== counter++) return false;
+                }
+            }
+            return true;
+        }
+
+        function restartGame() {
+            document.getElementById("status").innerText = "";
+            initBoard();
+            shuffleBoard();
+            // Оновлюємо дані в існуючій таблиці
+            pivot.updateData({ data: getWDRData() });
+        }
+
+        // Ініціалізація гри
+        initBoard();
+        shuffleBoard();
+
+        // Налаштування 
+        pivot = new WebDataRocks({
+            container: "#wdr-component",
+            toolbar: false,
+            report: {
+                dataSource: {
+                    data: getWDRData()
+                },
+                slice: {
+                    rows: [{ uniqueName: "Рядок" }],
+                    columns: [{ uniqueName: "Стовпець" }],
+                    measures: [{ uniqueName: "Плитка", aggregation: "sum" }] 
+                },
+                options: {
+                    grid: {
+                        showHeaders: false, 
+                        showTotals: "off",
+                        showGrandTotals: "off",
+                        showFilter: false
+                    }
+                }
+            },
+            // ховаємо нуль і малюємо плитки
+            customizeCell: function(cell, data) {
+                if (data.type === "value") {
+                    if (data.value === 0) {
+                        cell.text = ""; 
+                        cell.addClass("empty-tile");
+                    } else {
+                        cell.addClass("game-tile");
+                    }
+                }
+            }
+        });
+
+        // Обробка кліку по таблиці
+        pivot.on('cellclick', function(cellData) {
+            if (cellData.type !== "value") return; // Реагуємо тільки на клітинки зі значеннями
+
+            // Дістаємо координати з назв рядків/стовпців
+            let r = parseInt(cellData.rows[0].caption);
+            let c = parseInt(cellData.columns[0].caption);
+
+            // Чи клікнута плитка знаходиться поруч із порожньою
+            let isAdjacent = (Math.abs(r - emptyR) + Math.abs(c - emptyC) === 1);
+
+            if (isAdjacent && board[r][c] !== 0) {
+                // Міняємо місцями
+                board[emptyR][emptyC] = board[r][c];
+                board[r][c] = 0;
+                
+                // Оновлюємо координати порожньої клітинки
+                emptyR = r;
+                emptyC = c;
+
+                // Перемальовуємо таблицю новими даними
+                pivot.updateData({ data: getWDRData() });
+
+                // Перевіряємо, чи зібрано пазл
+                if (checkWin()) {
+                    setTimeout(() => {
+                        document.getElementById("status").innerText = "Вітаю! Ви зібрали п'ятнашки!";
+                    }, 100);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
